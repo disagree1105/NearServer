@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="lib3">
+    <CLASSES>
+      <root url="jar://E:/server-sdk-java-master/lib/commons-codec-1.4.jar!/" />
+      <root url="jar://E:/server-sdk-java-master/lib/gson-2.2.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

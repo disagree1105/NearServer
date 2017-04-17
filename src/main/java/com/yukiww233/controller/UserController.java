@@ -1,19 +1,27 @@
 package com.yukiww233.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.yukiww233.bean.resultBean.BaseModel;
 import com.yukiww233.mapper.PasswordMapper;
 import com.yukiww233.mapper.TokenMapper;
 import com.yukiww233.mapper.UserMapper;
 import com.yukiww233.utils.Utils;
+import io.rong.RongCloud;
+import io.rong.models.TokenResult;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import static com.yukiww233.utils.Constant.appKey;
+import static com.yukiww233.utils.Constant.appSecret;
 
 /**
  * Created by disagree on 2017/3/14.
@@ -61,12 +69,13 @@ public class UserController {
             if (userMapper.findUserName(username) != null) {
                 uid = userMapper.findUserName(username).get("uid").toString();
             }
-            if (userMapper.findPhoneNumber(username)!= null) {
+            if (userMapper.findPhoneNumber(username) != null) {
                 uid = userMapper.findPhoneNumber(username).get("uid").toString();
             }
             if (password.equals(passwordMapper.findPassword(uid))) {
                 Map<String, Object> map = new HashMap<String, Object>();
                 String token = UUID.randomUUID().toString().replaceAll("\\-", "");
+                map.putAll(userMapper.getUserInfo(uid));
                 map.put("token", token);
                 if (tokenMapper.selectToken(uid) != null)
                     tokenMapper.updateToken(uid, token);
@@ -79,41 +88,68 @@ public class UserController {
     }
 
     @RequestMapping(value = "/userInfo/get", produces = "application/json")
-    public String getUserInfo(@RequestParam(value = "token")String token){
-        if(!checkToken(token)){
+    public String getUserInfo(@RequestParam(value = "token") String token) {
+        if (!checkToken(token)) {
             return getResult(1, 0, "token无效！", null);
         }
-        String uid=tokenMapper.selectUid(token);
+        String uid = tokenMapper.selectUid(token);
         return getResult(1, 1, "查询成功！", userMapper.getUserInfo(uid));
     }
 
-    @RequestMapping(value = "/userInfo/update",produces="application/json")
-    public String updateUserInfo(@RequestParam(value = "token")String token,
+    @RequestMapping(value = "/userInfo/update", produces = "application/json")
+    public String updateUserInfo(@RequestParam(value = "token") String token,
                                  @RequestParam(value = "nickname") String nickname,
                                  @RequestParam(value = "sex") int sex,
                                  @RequestParam(value = "location") String location,
-                                 @RequestParam(value = "email") String email){
-        if(!checkToken(token)){
+                                 @RequestParam(value = "email") String email) {
+        if (!checkToken(token)) {
             return getResult(1, 0, "token无效！", null);
         }
-        String uid=tokenMapper.selectUid(token);
-        userMapper.update(nickname,sex,location,email,uid);
-        return getResult(1,1,"更新成功！",null);
+        String uid = tokenMapper.selectUid(token);
+        userMapper.update(nickname, sex, location, email, uid);
+        return getResult(1, 1, "更新成功！", null);
     }
 
-    @RequestMapping(value = "/logout",produces="application/json")
-    public String logOut(@RequestParam(value = "token")String token){
-        if(!checkToken(token)){
+    @RequestMapping(value = "/logout", produces = "application/json")
+    public String logOut(@RequestParam(value = "token") String token) {
+        if (!checkToken(token)) {
             return getResult(1, 0, "token无效！", null);
         }
         tokenMapper.deleteToken(token);
-        return getResult(1,1,"注销成功！",null);
+        return getResult(1, 1, "注销成功！", null);
     }
 
-    private String getResult(int ret_code1, int ret_code2, String message, Object _ret) {
-        baseModel = new BaseModel(ret_code1, ret_code2, message, _ret);
-        return new Gson().toJson(baseModel);
+    @RequestMapping(value = "/getIMToken", produces = "application/json")
+    public String getIMToken(@RequestParam(value = "token") String token) {
+//        if (!checkToken(token)) {
+//            return getResult(1, 0, "token无效！", null);
+//        }
+//        String uid = tokenMapper.selectUid(token);
+//        String username = userMapper.getUserInfo(uid).get("username").toString();
+//        RongCloud rongCloud = RongCloud.getInstance(appKey, appSecret);
+//        Map<String,Object> map=new HashMap<String,Object>();
+//        try {
+//            // 获取 Token
+//            TokenResult userGetTokenResult = rongCloud.user.getToken(uid, username, "http://www.rongcloud.cn/images/logo.png");
+//            return getResult(1, 0, userGetTokenResult.getErrorMessage(), null);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        if(userGetTokenResult.getCode().equals("200"))
+//            return getResult(1, 0, "查询成功！", map);
+//        else
+//            return getResult(1, 0, userGetTokenResult.getErrorMessage(), null);
+        TokenResult t = Test.getTokenResult();
+        return "0";
     }
+
+
+    private String getResult(int ret_code1, int ret_code2, String message, Map<String, Object> _ret) {
+        baseModel = new BaseModel(ret_code1, ret_code2, message, _ret);
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        return gson.toJson(baseModel);
+    }
+
 
     private Boolean checkToken(String token) {
         if (tokenMapper.selectUid(token) == null)

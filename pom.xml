@@ -12,8 +12,11 @@
     <build>
         <finalName>ROOT</finalName>
     </build>
+    <modules>
+        <module>serverSDK</module>
+    </modules>
     <!-- maven package时打包成war格式 -->
-    <packaging>war</packaging>
+    <packaging>pom</packaging>
 
 
     <parent>
@@ -82,6 +85,9 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
+
+
     </dependencies>
+
 
 </project>
