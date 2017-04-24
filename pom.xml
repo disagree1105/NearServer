@@ -12,11 +12,8 @@
     <build>
         <finalName>ROOT</finalName>
     </build>
-    <modules>
-        <module>serverSDK</module>
-    </modules>
     <!-- maven package时打包成war格式 -->
-    <packaging>pom</packaging>
+    <packaging>war</packaging>
 
 
     <parent>
@@ -86,6 +83,18 @@
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/commons-beanutils/commons-beanutils -->
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.2</version>
+        </dependency>
 
     </dependencies>
 

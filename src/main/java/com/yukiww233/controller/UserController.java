@@ -9,15 +9,18 @@ import com.yukiww233.mapper.UserMapper;
 import com.yukiww233.utils.Utils;
 import io.rong.RongCloud;
 import io.rong.models.TokenResult;
-import org.apache.commons.codec.binary.Hex;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.Reader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Observable;
 import java.util.UUID;
 
 import static com.yukiww233.utils.Constant.appKey;
@@ -39,6 +42,11 @@ public class UserController {
 
     @Autowired
     BaseModel baseModel;
+
+    @RequestMapping(value = "'uploadImage", produces = "application/json")
+    public String uploadImage(@RequestParam(value = "file") File file) {
+        return "";
+    }
 
     @RequestMapping(value = "/register", produces = "application/json")
     public String register(@RequestParam(value = "userName") String username,
@@ -121,26 +129,29 @@ public class UserController {
 
     @RequestMapping(value = "/getIMToken", produces = "application/json")
     public String getIMToken(@RequestParam(value = "token") String token) {
-//        if (!checkToken(token)) {
-//            return getResult(1, 0, "token无效！", null);
-//        }
-//        String uid = tokenMapper.selectUid(token);
-//        String username = userMapper.getUserInfo(uid).get("username").toString();
-//        RongCloud rongCloud = RongCloud.getInstance(appKey, appSecret);
-//        Map<String,Object> map=new HashMap<String,Object>();
-//        try {
-//            // 获取 Token
-//            TokenResult userGetTokenResult = rongCloud.user.getToken(uid, username, "http://www.rongcloud.cn/images/logo.png");
-//            return getResult(1, 0, userGetTokenResult.getErrorMessage(), null);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        if(userGetTokenResult.getCode().equals("200"))
-//            return getResult(1, 0, "查询成功！", map);
-//        else
-//            return getResult(1, 0, userGetTokenResult.getErrorMessage(), null);
-        TokenResult t = Test.getTokenResult();
-        return "0";
+        return IMToken(token);
+    }
+
+    private String IMToken(String token) {
+        if (!checkToken(token)) {
+            return getResult(1, 0, "token无效！", null);
+        }
+        String uid = tokenMapper.selectUid(token);
+        String username = userMapper.getUserInfo(uid).get("username").toString();
+        RongCloud rongCloud = RongCloud.getInstance(appKey, appSecret);
+        Map<String, Object> map = new HashMap<String, Object>();
+        TokenResult userGetTokenResult = null;
+        try {
+            // 获取 Token
+            userGetTokenResult = rongCloud.user.getToken(uid, username, "http://www.rongcloud.cn/images/logo.png");
+            map.put("IMToken", userGetTokenResult.getToken());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (userGetTokenResult.getCode() == 200) {
+            return getResult(1, 1, userGetTokenResult.getErrorMessage(), map);
+        } else
+            return getResult(1, 0, userGetTokenResult.getErrorMessage(), null);
     }
 
 
