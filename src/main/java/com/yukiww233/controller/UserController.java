@@ -1,30 +1,24 @@
 package com.yukiww233.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.yukiww233.bean.resultBean.BaseModel;
 import com.yukiww233.mapper.PasswordMapper;
 import com.yukiww233.mapper.TokenMapper;
 import com.yukiww233.mapper.UserMapper;
 import com.yukiww233.utils.Utils;
 import io.rong.RongCloud;
 import io.rong.models.TokenResult;
-
-import org.apache.commons.beanutils.BeanUtils;
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.*;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Observable;
 import java.util.UUID;
 
 import static com.yukiww233.utils.Constant.appKey;
 import static com.yukiww233.utils.Constant.appSecret;
+import static com.yukiww233.utils.Utils.getResult;
 
 /**
  * Created by disagree on 2017/3/14.
@@ -40,12 +34,21 @@ public class UserController {
     @Autowired
     TokenMapper tokenMapper;
 
-    @Autowired
-    BaseModel baseModel;
 
-    @RequestMapping(value = "'uploadImage", produces = "application/json")
+    @RequestMapping(value = "/uploadImage", produces = "application/json")
     public String uploadImage(@RequestParam(value = "file") File file) {
         return "";
+    }
+
+    @RequestMapping(value = "/avatarUrl/update",produces ="application/json")
+    public String updateAvatarUrl(@RequestParam(value = "token") String token,
+                                  @RequestParam(value = "url")String url){
+        if (!checkToken(token)) {
+            return getResult(1, 0, "token无效！", null);
+        }
+        String uid=tokenMapper.selectUid(token);
+        userMapper.updateUrl(url,uid);
+        return getResult(1, 1, "修改成功！", null);
     }
 
     @RequestMapping(value = "/register", produces = "application/json")
@@ -104,17 +107,26 @@ public class UserController {
         return getResult(1, 1, "查询成功！", userMapper.getUserInfo(uid));
     }
 
+    @RequestMapping(value ="userInfo2/get", produces = "application/json")
+    public String getUserInfo2(@RequestParam(value = "uid") String uid){
+        if(userMapper.getUserInfo2(uid)==null){
+            return getResult(1, 0, "uid无效！", null);
+        }
+        return getResult(1, 1, "查询成功！", userMapper.getUserInfo2(uid));
+    }
+
     @RequestMapping(value = "/userInfo/update", produces = "application/json")
     public String updateUserInfo(@RequestParam(value = "token") String token,
                                  @RequestParam(value = "nickname") String nickname,
                                  @RequestParam(value = "sex") int sex,
                                  @RequestParam(value = "location") String location,
-                                 @RequestParam(value = "email") String email) {
+                                 @RequestParam(value = "email") String email,
+                                 @RequestParam(value = "avatarUrl")String url) {
         if (!checkToken(token)) {
             return getResult(1, 0, "token无效！", null);
         }
         String uid = tokenMapper.selectUid(token);
-        userMapper.update(nickname, sex, location, email, uid);
+        userMapper.update(nickname, sex, location, email, uid,url);
         return getResult(1, 1, "更新成功！", null);
     }
 
@@ -143,7 +155,7 @@ public class UserController {
         TokenResult userGetTokenResult = null;
         try {
             // 获取 Token
-            userGetTokenResult = rongCloud.user.getToken(uid, username, "http://www.rongcloud.cn/images/logo.png");
+            userGetTokenResult = rongCloud.user.getToken(username, username, "http://www.rongcloud.cn/images/logo.png");
             map.put("IMToken", userGetTokenResult.getToken());
         } catch (Exception e) {
             e.printStackTrace();
@@ -154,17 +166,9 @@ public class UserController {
             return getResult(1, 0, userGetTokenResult.getErrorMessage(), null);
     }
 
-
-    private String getResult(int ret_code1, int ret_code2, String message, Map<String, Object> _ret) {
-        baseModel = new BaseModel(ret_code1, ret_code2, message, _ret);
-        Gson gson = new GsonBuilder().serializeNulls().create();
-        return gson.toJson(baseModel);
-    }
-
-
     private Boolean checkToken(String token) {
-        if (tokenMapper.selectUid(token) == null)
-            return false;
-        return true;
+        return tokenMapper.selectUid(token) != null;
     }
+
+
 }
