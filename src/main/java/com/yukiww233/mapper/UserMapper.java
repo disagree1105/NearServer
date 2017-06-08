@@ -1,9 +1,7 @@
 package com.yukiww233.mapper;
 
-import com.yukiww233.bean.User;
 import org.apache.ibatis.annotations.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,7 +15,7 @@ public interface UserMapper {
                   @Param("phoneNumber") String phoneNumber);
 
     @Select("select uid,username from user where username = #{username}")
-    Map<String,Object> findUserName(@Param("username") String usernmae);
+    Map<String, Object> findUserName(@Param("username") String username);
 
     @Select("select username from user where uid = #{uid}")
     String getUserName(@Param("uid") String uid);
@@ -33,6 +31,9 @@ public interface UserMapper {
 
     @Select("select uid,avatarUrl,username from user where uid=#{uid}")
     Map<String,Object> getUserInfo2(@Param("uid") String uid);
+
+    @Select("select username from user where uid=#{uid}")
+    String getUsername(@Param("uid") String uid);
 
     @Update("update user set nickname = #{nickname},sex = #{sex}," +
             "location = #{location},email = #{email},avatarUrl=#{avatarUrl} where uid = #{uid}")

@@ -20,4 +20,7 @@ public interface FavMapper {
 
     @Select("select * from fav where uid=#{uid} and taskUid=#{taskUid}")
     Map<String, Object> checkFav(@Param("uid") String uid, @Param("taskUid") String taskUid);
+
+    @Select("select count(*) from fav where uid=#{uid}")
+    int favCount(@Param("uid") String uid);
 }

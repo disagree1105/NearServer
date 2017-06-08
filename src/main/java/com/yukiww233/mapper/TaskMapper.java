@@ -26,12 +26,15 @@ public interface TaskMapper {
                            @Param("imageList") String imageList,
                            @Param("rewards")int rewards);
 
-    @Select("select * from task")
+    @Select("select * from task where status!= 2")
     List<Map<String,Object>> queryAll();
 
 
     @Select("select publisherUid from task where taskUid=#{taskUid}")
     String getPublisherUid(@Param("taskUid") String taskUid);
+
+    @Select("select acceptUid from task where taskUid=#{taskUid}")
+    String getAcceptUid(@Param("taskUid") String taskUid);
 
     @Select("select status from task where taskUid=#{taskUid}")
     int getStatus(@Param("taskUid") String taskUid);
@@ -65,5 +68,8 @@ public interface TaskMapper {
 
     @Update("update task set favNumber=favNumber+1 where taskUid=#{taskUid}")
     void addFav(@Param("taskUid") String taskUid);
+
+    @Select("select rewards from task where taskUid=#{taskUid}")
+    int getRewards(@Param("taskUid") String taskUid);
 
 }

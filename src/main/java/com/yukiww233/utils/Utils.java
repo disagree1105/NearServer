@@ -3,7 +3,6 @@ package com.yukiww233.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.yukiww233.bean.resultBean.BaseModel;
-import com.yukiww233.mapper.TokenMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
@@ -16,7 +15,7 @@ import java.util.regex.Pattern;
 public class Utils {
     @Autowired
     static BaseModel baseModel;
-
+    private static double EARTH_RADIUS = 6378.137;
 
     public static boolean checkAllNumbers(String str) {
         Pattern pattern = Pattern.compile("[0-9]{1,}");
@@ -36,5 +35,22 @@ public class Utils {
         return gson.toJson(baseModel);
     }
 
+    public static double getDistanceOfMeter(double lat1, double lng1,
+                                            double lat2, double lng2) {
+        double radLat1 = rad(lat1);
+        double radLat2 = rad(lat2);
+        double a = radLat1 - radLat2;
+        double b = rad(lng1) - rad(lng2);
+        double s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2)
+                + Math.cos(radLat1) * Math.cos(radLat2)
+                * Math.pow(Math.sin(b / 2), 2)));
+        s = s * EARTH_RADIUS;
+        s = Math.round(s * 10000) / 10;
+        return s;
+    }
+
+    private static double rad(double d) {
+        return d * Math.PI / 180.0;
+    }
 
 }

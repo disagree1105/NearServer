@@ -3,9 +3,11 @@ package com.yukiww233.controller;
 import com.yukiww233.mapper.PasswordMapper;
 import com.yukiww233.mapper.TokenMapper;
 import com.yukiww233.mapper.UserMapper;
+import com.yukiww233.mapper.WalletMapper;
 import com.yukiww233.utils.Utils;
 import io.rong.RongCloud;
 import io.rong.models.TokenResult;
+import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +21,7 @@ import java.util.UUID;
 import static com.yukiww233.utils.Constant.appKey;
 import static com.yukiww233.utils.Constant.appSecret;
 import static com.yukiww233.utils.Utils.getResult;
+import static com.yukiww233.utils.Utils.getResult2;
 
 /**
  * Created by disagree on 2017/3/14.
@@ -33,6 +36,9 @@ public class UserController {
 
     @Autowired
     TokenMapper tokenMapper;
+
+    @Autowired
+    WalletMapper walletMapper;
 
 
     @RequestMapping(value = "/uploadImage", produces = "application/json")
@@ -67,8 +73,10 @@ public class UserController {
         }
         passwordMapper.register(uid, password);
         userMapper.register(uid, username, phoneNumber);
+        walletMapper.insert(uid, 1000.00);
         return getResult(1, 1, "注册成功！", null);
     }
+
 
     @RequestMapping(value = "/login", produces = "application/json")
     public String login(@RequestParam(value = "userName") String username,
@@ -78,6 +86,7 @@ public class UserController {
         } else {
             String uid = "";
             if (userMapper.findUserName(username) != null) {
+                System.out.println(userMapper.findUserName(username));
                 uid = userMapper.findUserName(username).get("uid").toString();
             }
             if (userMapper.findPhoneNumber(username) != null) {
@@ -115,6 +124,13 @@ public class UserController {
         return getResult(1, 1, "查询成功！", userMapper.getUserInfo2(uid));
     }
 
+    public Map<String, Object> getBalance(String token) {
+        Map<String, Object> map = new HashedMap();
+        map.put("result", "success");
+        map.put("balance", "100.1");
+        return map;
+    }
+
     @RequestMapping(value = "/userInfo/update", produces = "application/json")
     public String updateUserInfo(@RequestParam(value = "token") String token,
                                  @RequestParam(value = "nickname") String nickname,
@@ -137,6 +153,17 @@ public class UserController {
         }
         tokenMapper.deleteToken(token);
         return getResult(1, 1, "注销成功！", null);
+    }
+
+    @RequestMapping(value = "/balance/get", produces = "application/json")
+    public String getBalance2(@RequestParam(value = "token") String token) {
+        if (!checkToken(token)) {
+            return getResult(1, 0, "token无效！", null);
+        }
+        String uid = tokenMapper.selectUid(token);
+        Map<String, Object> map = new HashedMap();
+        map.put("balance", walletMapper.getBalance(uid));
+        return getResult2(1, 1, "查询成功！", map);
     }
 
     @RequestMapping(value = "/getIMToken", produces = "application/json")
